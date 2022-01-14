@@ -49,7 +49,7 @@ class Docstring():
     _fmt = ''
 
     def __init__(self, text=None, name=None, decl_name=None,
-                 ttype=None, args=None, meta=None, nest=0):
+                 ttype=None, args=None, meta=None, nest=0, source_code=None):
         self._text = text
         self._name = name
         self._decl_name = decl_name
@@ -58,6 +58,7 @@ class Docstring():
         self._meta = meta
         self._nest = nest
         self._children = []
+        self._source_code = source_code
 
     def add_child(self, comment):
         self._children.append(comment)
@@ -141,6 +142,11 @@ class Docstring():
             text = transform(text)
 
         text = Docstring._nest(text, self._indent)
+
+        if self._source_code:
+            text += '\n   .. rubric:: Source\n'
+            code = re.sub(r"^\t+", lambda m: "        "*len(m.group()), self._source_code, flags=re.M)
+            text += '\n   .. code:: c\n\n%s\n' % Docstring._nest(code, self._indent+1)
 
         args = ', '.join(self._args) if self._args is not None else None
 

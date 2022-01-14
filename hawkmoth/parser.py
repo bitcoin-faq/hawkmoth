@@ -189,7 +189,7 @@ def _anonymous_fixup(ttype, name):
 
     return ttype, name
 
-def _recursive_parse(comments, cursor, nest):
+def _recursive_parse(comments, cursor, nest, showcode):
     comment = comments[cursor.hash]
     name = cursor.spelling
     ttype = cursor.type.spelling
@@ -255,7 +255,7 @@ def _recursive_parse(comments, cursor, nest):
 
         for c in cursor.get_children():
             if c.hash in comments:
-                ds.add_children(_recursive_parse(comments, c, nest + 1))
+                ds.add_children(_recursive_parse(comments, c, nest + 1, showcode))
 
         return [ds]
 
@@ -269,6 +269,12 @@ def _recursive_parse(comments, cursor, nest):
         # FIXME: children may contain extra stuff if the return type is a
         # typedef, for example
         args = []
+
+        source_code = None
+        if showcode:
+            extent = cursor.extent
+            lines = list(open(extent.start.file.name))[extent.start.line-1:extent.end.line]
+            source_code = ''.join(lines)
 
         # Only fully prototyped functions will have argument lists to process.
         if cursor.type.kind == TypeKind.FUNCTIONPROTO:
@@ -284,7 +290,7 @@ def _recursive_parse(comments, cursor, nest):
         ttype = cursor.result_type.spelling
 
         ds = docstring.FunctionDocstring(text=text, nest=nest, name=name,
-                                         ttype=ttype, args=args, meta=meta)
+                                         ttype=ttype, args=args, meta=meta, source_code=source_code)
         return [ds]
 
     # FIXME: If we reach here, nothing matched. This is a warning or even error
@@ -315,12 +321,11 @@ def _clang_diagnostics(diagnostics):
     return errors
 
 # Parse a file and return a tree of docstring.Docstring objects.
-def parse(filename, clang_args=None):
+def parse(filename, clang_args=None, showcode=None):
     index = Index.create()
 
     tu = index.parse(filename, args=clang_args,
-                     options=TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD |
-                     TranslationUnit.PARSE_SKIP_FUNCTION_BODIES)
+                     options=TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
 
     errors = _clang_diagnostics(tu.diagnostics)
 
@@ -337,6 +342,6 @@ def parse(filename, clang_args=None):
 
     for cursor in tu.cursor.get_children():
         if cursor.hash in comments:
-            result.add_children(_recursive_parse(comments, cursor, 0))
+            result.add_children(_recursive_parse(comments, cursor, 0, showcode))
 
     return result, errors

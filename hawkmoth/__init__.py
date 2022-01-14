@@ -112,7 +112,7 @@ class CAutoBaseDirective(SphinxDirective):
         # Tell Sphinx about the dependency
         self.env.note_dependency(filename)
 
-        docstrings, errors = parse(filename, clang_args=clang_args)
+        docstrings, errors = parse(filename, clang_args=clang_args, showcode=self.env.config.cautodoc_showcode)
 
         self.__display_parser_diagnostics(errors)
 
@@ -247,6 +247,7 @@ def setup(app):
     app.add_config_value('cautodoc_compat', None, 'env', [str])
     app.add_config_value('cautodoc_transformations', None, 'env', [dict])
     app.add_config_value('cautodoc_clang', [], 'env', [list])
+    app.add_config_value('cautodoc_showcode', None, 'env', [bool])
     app.add_directive_to_domain('c', 'autodoc', CAutoDocDirective)
     app.add_directive_to_domain('c', 'autovar', CAutoVarDirective)
     app.add_directive_to_domain('c', 'autotype', CAutoTypeDirective)

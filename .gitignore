@@ -4,3 +4,6 @@
 build
 dist
 hawkmoth.egg-info
+
+#vim
+*.sw*
