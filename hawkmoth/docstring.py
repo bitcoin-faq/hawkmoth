@@ -144,9 +144,9 @@ class Docstring():
         text = Docstring._nest(text, self._indent)
 
         if self._source_code:
-            text += '\n   .. rubric:: Source\n'
+            text += '\n\n   .. rubric:: Source'
             code = re.sub(r"^\t+", lambda m: "        "*len(m.group()), self._source_code, flags=re.M)
-            text += '\n   .. code:: c\n\n%s\n' % Docstring._nest(code, self._indent+1)
+            text += '\n\n   .. code:: c\n\n%s\n\n' % Docstring._nest(code, self._indent+1)
 
         args = ', '.join(self._args) if self._args is not None else None
 
